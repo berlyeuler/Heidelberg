@@ -356,13 +356,21 @@ def plot_cumulative_distributions(data_source, n_bins=25, label_x="Value"):
 
 
 if __name__ == "__main__":
-    file_path = "/scratch/hpc-prf-radmix/hpcbeoe/test_beril/cloud.0200.vtk"
-
-    #create_movie(file_path, field="density")
-
-    make_movie(
-        field="density",
-        suffix="hocanin_sevdikleri",
-        spesific_snaps=[10, 20, 23],  # Buraya istediğin snapshot numaralarını yazabilirsin!
-        fps=2, )
-
+    # Hocanın istediği 4 farklı vtk snapshot dosyasının listesi
+    snap_numbers = ["0000", "0010", "0020", "0030"]
+    
+    # Tüm snapshot'ları AYNI grafik üzerine çizmek için bir döngü kuruyoruz
+    for snap in snap_numbers:
+        # Her döngüde dosya adını dinamik olarak değiştiriyoruz
+        file_path = f"/scratch/hpc-prf-radmix/hpcbeoe/test_beril/cloud.{snap}.vtk"
+        
+        # Grafiklerin üst üste binmesi için senin ana çizim fonksiyonunu çağırıyoruz
+        # NOT: Kodunun yukarılarında ismi 'make_movie' veya 'create_movie' ya da 'plot_histograms' olan, 
+        # density histogramı çizen fonksiyonun adı neyse buraya TAM OLARAK ONU yaz:
+        make_movie(file_path, field="density")
+    
+    # Döngü bittikten sonra hepsini tek bir görsel olarak kaydetmesi veya göstermesi için:
+    # Eğer fonksiyonun kendi içinde plt.savefig varsa bu satıra gerek kalmayabilir.
+    import matplotlib.pyplot as plt
+    plt.savefig("/scratch/hpc-prf-radmix/hpcbeoe/test_beril/hepsi_bir_arada.png")
+    print("Hocanın istediği gibi tüm histogramlar aynı grafiğe üst üste çizildi!")
