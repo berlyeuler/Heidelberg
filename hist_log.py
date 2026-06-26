@@ -10,7 +10,7 @@ import imageio
 
 
 
-ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.0200.vtk')
+# ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.0200.vtk')
 ds.field_list
 ds.derived_field_list
 
@@ -125,10 +125,10 @@ def slice_function(ds, axis, field):
 
  
 
-ad = ds.all_data()
-density = ad['density']
-erad = ad['Erad']
-pressure = ad['pressure']
+# ad = ds.all_data()
+# density = ad['density']
+# erad = ad['Erad']
+# pressure = ad['pressure']
 
 #a function to show 2 graphs in one plot
 def plot_two_graphs(ds, axes, field1, field2):
@@ -358,21 +358,34 @@ def plot_cumulative_distributions(data_source, n_bins=25, label_x="Value"):
 
 
 if __name__ == "__main__":
-    # Hocanın istediği 4 farklı vtk snapshot dosyasının listesi
+    # Hocanın istediği ve klasörde var olan 4 özel snapshot numarası
     snap_numbers = ["0000", "0010", "0020", "0030"]
     
-    # Tüm snapshot'ları AYNI grafik üzerine çizmek için bir döngü kuruyoruz
-    for snap in snap_numbers:
-        # Her döngüde dosya adını dinamik olarak değiştiriyoruz
-        file_path = f"/scratch/hpc-prf-radmix/hpcbeoe/test_beril/cloud.{snap}.vtk"
-        
-        # Grafiklerin üst üste binmesi için senin ana çizim fonksiyonunu çağırıyoruz
-        # NOT: Kodunun yukarılarında ismi 'make_movie' veya 'create_movie' ya da 'plot_histograms' olan, 
-        # density histogramı çizen fonksiyonun adı neyse buraya TAM OLARAK ONU yaz:
-        make_movie(file_path, field="density")
+    # Boş bir grafik alanı açıyoruz ki hepsi tek bir görselde üst üste binsin
+    plt.figure(figsize=(10, 6))
     
-    # Döngü bittikten sonra hepsini tek bir görsel olarak kaydetmesi veya göstermesi için:
-    # Eğer fonksiyonun kendi içinde plt.savefig varsa bu satıra gerek kalmayabilir.
-    import matplotlib.pyplot as plt
-    plt.savefig("/scratch/hpc-prf-radmix/hpcbeoe/test_beril/hepsi_bir_arada.png")
-    print("Hocanın istediği gibi tüm histogramlar aynı grafiğe üst üste çizildi!")
+    # Tüm snapshot'ları döngüyle tek tek okuyoruz
+    for snap in snap_numbers:
+        # Yolun ortasına senin klasördeki o eksik olan 'id0' yu ekledik:
+        file_path = f"/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.{snap}.vtk"
+        print(f"Yükleniyor: {file_path}")
+        
+        # Dosyayı dinamik olarak yüklüyoruz (İşte 13. satırdaki yüklemeyi buraya taşımış olduk!)
+        ds_current = yt.load(file_path)
+        
+        # Senin kendi yazdığın hist_function mantığıyla veriyi çekip çizdiriyoruz
+        ad_current = ds_current.all_data()
+        field_data = ad_current[("athena", "density")]
+        
+        # seaborn ile logaritmik ve şık bir üst üste histogram çiziyoruz
+        sns.histplot(field_data, log_scale=True, label=f"Snapshot {snap}", element="step", fill=False)
+    
+    # Grafiği güzelleştirip hocanın klasörüne kaydediyoruz
+    plt.title("Density Histogram Evolution (0000 - 0030)")
+    plt.xlabel("Density (log scale)")
+    plt.ylabel("Frequency")
+    plt.legend()
+    
+    output_plot = "/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/histogram_evrimi.png"
+    plt.savefig(output_plot, dpi=300)
+    print(f"MÜJDE! Tüm histogramlar aynı grafiğe çizildi ve kaydedildi: {output_plot}")
