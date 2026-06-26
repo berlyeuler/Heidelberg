@@ -67,16 +67,18 @@ def create_movie(base_path, field="density", fps=10):
     print ("All snapshots are saved in 'frames/ field")
 
 
-def make_movie(field="density", suffix= "custom", spesific_snaps=None, fps= 10):
-    print(f"'{field}'s video is prepearing")
+def make_movie(field="density", suffix="custom", spesific_snaps=None, fps=10):
+    print(f"'{field}'s video is preparing")
 
-frames = sorted(glob.glob("frames/*_density*.png"))
-if not frames:
-    frames = sorted(glob.glob("*_Slice_z_density.png"))
-
+    # Bak, buralara 4 boşluk (veya 1 TAB) girinti ekliyoruz:
+    frames = sorted(glob.glob("frames/*_density*.png"))
     if not frames:
-        print("Errror, coulndt find a snapshot in 'frames/' file you should first run the 'create movie' ")
-        return
+        frames = sorted(glob.glob("*_Slice_z_density.png"))
+
+        if not frames:
+            print("Errror, couldnt find a snapshot in 'frames/' file you should first run the 'create movie' ")
+            return
+
     
     if spesific_snaps is not None:
         selected_frames= []
