@@ -356,7 +356,7 @@ def plot_cumulative_distributions(data_source, n_bins=25, label_x="Value"):
 
 
 if __name__ == "__main__":
-    file_path = "C:/Users/User/Desktop/pyCourse/snap200/id0/cloud.0200.vtk"
+    file_path = "/scratch/hpc-prf-radmix/hpcbeoe/test_beril/cloud.0200.vtk"
 
     #create_movie(file_path, field="density")
 
