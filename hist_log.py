@@ -10,7 +10,7 @@ import imageio
 
 
 
-ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/cloud.0200.vtk')
+ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.0200.vtk')
 ds.field_list
 ds.derived_field_list
 
