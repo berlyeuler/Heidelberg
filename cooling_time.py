@@ -8,8 +8,10 @@ import glob
 import os 
 import imageio
 
-ds= yt.load('snap200/id0/cloud.0200.vtk')
+# Terminalden çıkan tam yolu buraya yapıştıracaksın:
+ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.0100.vtk')
 ad= ds.all_data()
+
 
 M1 = 8.9887
 gamma = 5 / 3 
@@ -27,7 +29,7 @@ def get_simulation_data(ad):
     temperature = pressure / density
     
     return density, pressure, temperature
-
+@np.vectorize
 def sutherland_dopita_cooling_rate_function(temperature_dimless):
     # result is in units of 1e-23 erg cm^3 / s
     # piecewise power law fit of Sutherland & Dopita (1993) cooling function
@@ -58,8 +60,19 @@ def calculate_cooling_time(density, temperature, gamma=5.0/3.0, small_lambda=1.0
 
     return cooling_time_array
 
-sim_density, sim_pressure, sim_temperature = get_simulation_data(ad)
-t_cool = calculate_cooling_time(sim_density, sim_temperature, gamma, small_lambda=small_lambda)
+
+rho_wind = 1.0
+T_wind = 100.0
+
+densty=((gamma+1)*(M1**2)) / (2 + (gamma-1) * (M1**2))
+press= 1 + (2 * gamma / (gamma + 1)) * (M1**2 - 1)
+T_ratio= press/ densty
+
+pred_rho = densty*rho_wind
+pred_T = T_ratio*rho_wind
+
+#sim_density, sim_pressure, sim_temperature = get_simulation_data(ad)
+t_cool = calculate_cooling_time(pred_rho, pred_T, gamma, small_lambda=small_lambda)
 print("Cooling time array'i:", t_cool)
     
         
