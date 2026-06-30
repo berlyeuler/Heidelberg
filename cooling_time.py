@@ -69,7 +69,7 @@ press= 1 + (2 * gamma / (gamma + 1)) * (M1**2 - 1)
 T_ratio= press/ densty
 
 pred_rho = densty*rho_wind
-pred_T = T_ratio*rho_wind
+pred_T = T_ratio*T_wind
 
 #sim_density, sim_pressure, sim_temperature = get_simulation_data(ad)
 t_cool = calculate_cooling_time(pred_rho, pred_T, gamma, small_lambda=small_lambda)
