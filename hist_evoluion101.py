@@ -38,7 +38,7 @@ if __name__ == "__main__":
     plt.legend()
     
     # Grafiği kaydedeceğimiz yer
-    output_plot = "/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/histogram_evolution.png"
+    output_plot = "/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/histogram_evolution2.png"
     plt.savefig(output_plot, dpi=300)
     print(f"Saved: {output_plot}")
 
