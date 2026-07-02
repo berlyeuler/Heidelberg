@@ -10,10 +10,7 @@ import yt
 
 
 
-ds= yt.load('snap200/id0/cloud.0200.vtk')
-
-
-ds = yt.load('snap200/id0/cloud.0200.vtk')
+ds= yt.load('/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/cloud.0040.vtk')
 ds.field_list # Get the list of native fields
 ds.derived_field_list 
 
