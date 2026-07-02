@@ -8,7 +8,7 @@ import seaborn as sns
 
 import yt
 
-ds= yt.load('/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0')
+ds= yt.load('/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/cloud.0100.vtk')
 
 ds.derived_field_list
 
