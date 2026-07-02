@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
         # seaborn ile logaritmik ve şık bir üst üste histogram çiziyoruz
         sns.histplot(field_data, 
-                     log_scale=True, #log_scale=True → hem x hem de y eksenlerine logaritmik ölçeklendirme uygular.
+                     log_scale= (True,True), #log_scale=True → hem x hem de y eksenlerine logaritmik ölçeklendirme uygular.
                      label=f"Snapshot {snap}",
                      element= "step",
                      fill= False
