@@ -8,7 +8,7 @@ import seaborn as sns
 
 import yt
 
-ds= yt.load('snap200/id0/cloud.0200.vtk')
+ds= yt.load('/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0')
 
 ds.derived_field_list
 
@@ -71,6 +71,8 @@ def predicted_histogram(ds, field, bins=30):
     plt.show()
 
 predicted_histogram(ds, "density")
+predicted_histogram(ds, "temperature")
+predicted_histogram(ds, "pressure")
 
 
 
