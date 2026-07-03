@@ -9,8 +9,8 @@ import os
 import imageio
 
 # Terminalden çıkan tam yolu buraya yapıştıracaksın:
-ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.0100.vtk')
-ad= ds.all_data()
+#ds = yt.load('/scratch/hpc-prf-radmix/hpcbeoe/test_beril/id0/cloud.0100.vtk')
+#ad= ds.all_data()
 
 
 M1 = 8.9887
@@ -18,7 +18,6 @@ gamma = 5 / 3
 rho1 = 1.0
 T = 10.0
 small_lambda = 1.0
-
 
 
 def get_simulation_data(ad):
@@ -69,11 +68,36 @@ press= 1 + (2 * gamma / (gamma + 1)) * (M1**2 - 1)
 T_ratio= press/ densty
 
 pred_rho = densty*rho_wind
-pred_T = T_ratio*T_wind
+pred_T = T_ratio*rho_wind
 
-#sim_density, sim_pressure, sim_temperature = get_simulation_data(ad)
 t_cool = calculate_cooling_time(pred_rho, pred_T, gamma, small_lambda=small_lambda)
 print("Cooling time array'i:", t_cool)
+
+
+
+#  simülasyondan o anki yoğunluk ve sıcaklık verilerini çekiyoruz
+#sim_density, sim_pressure, sim_temperature = get_simulation_data(ad)
+min_rho = float(1.0)
+max_rho = float(10.0)
+min_T = float(1.0)
+max_T = float(500.00)
+
+y_temperature= np.linspace(min_T, max_T, num=100)
+x_density= np.linspace(min_rho, max_rho, num=100 )
+rho_mesh, T_mesh = np.meshgrid(x_density, y_temperature)
+t_cool_mesh = calculate_cooling_time(rho_mesh, T_mesh, gamma=gamma, small_lambda=small_lambda)
+
+plt.figure(figsize=(8, 6))
+contour_plot = plt.contourf(rho_mesh, T_mesh, np.log10(t_cool_mesh), levels=20, cmap='viridis')
+
+plt.colorbar(contour_plot, label='Log coolin Time ($t_{cool}$)')
+
+plt.xlabel('Density (Density - $\\rho$)')
+plt.ylabel('Tempetarue (Temperature - $T$)')
+plt.title('Cooling time ($t_{cool}$)')
+
+
+plt.show()
     
         
     
