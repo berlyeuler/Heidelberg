@@ -80,7 +80,7 @@ def predicted_histogram(ds, field, bins=30):
     plt.title(f"{field.capitalize()} Histogram & Dual Rankine-Hugoniot Prediction")
     plt.legend()
     
-    output_path = f"/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/{field}_predicted_hist.png"
+    output_path = f"/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/{field}_2predicted_hist.png"
     plt.savefig(output_path, dpi=300)
     plt.close()
     print(f"Succesfuly saved: {output_path}")
