@@ -55,7 +55,10 @@ def sutherland_dopita_cooling_rate_function(temperature_dimless):
     
 def calculate_cooling_time(density, temperature, gamma=5.0/3.0, small_lambda=1.0):
     lamb= sutherland_dopita_cooling_rate_function(temperature)
-    cooling_time_array = temperature / ((gamma - 1.0) * density * small_lambda * lamb)
+    print('Alert! CCD added a missing term! :O ')
+    # :) Missing term for conversion to code units :)
+    mu_e = 1.17
+    cooling_time_array = mu_e**2 * temperature / ((gamma - 1.0) * density * small_lambda * lamb)
 
     return cooling_time_array
 
