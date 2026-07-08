@@ -69,6 +69,8 @@ def predicted_histogram(ds, field, bins=30):
 
 # Fonksiyonu çağırıyoruz
 predicted_histogram(ds, "density")
+predicted_histogram(ds, "temperature")
+predicted_histogram(ds, "pressure")
 
 
 

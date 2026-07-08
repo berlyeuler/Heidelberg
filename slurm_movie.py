@@ -14,12 +14,12 @@ def create_movie(base_path, field="density", fps=10):
     Klasördeki tüm vtk dosyalarını döngüye sokarak seçilen alan için
     (density, pressure, temperature) kesit grafikleri çizer ve resimleri kaydeder.
     """
-    # 1. Hocanın istediği gibi 'frames' klasörünü simülasyon yolunun altında tanımlıyoruz
+    # 1. 'frames' klasörünü simülasyon yolunun altında tanımlıyoruz
     output_directory = os.path.join(base_path, "frames")
     
     # 2. Eğer o simülasyonun içinde 'frames' yoksa otomatik oluşturuyoruz
     if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+        os.makedirs(output_directory, exist_ok=True)
 
     print(f"\n[STEP 1] {field} snapshots are loading from {base_path}... ")
     ts = yt.DatasetSeries(f"{base_path}/id0/cloud*.vtk")
@@ -27,8 +27,6 @@ def create_movie(base_path, field="density", fps=10):
     print(f"[STEP 2] Snapshots are being saved to '{output_directory}' klasörüne kaydediliyor...")
     
     for ds in ts:
-        # vtk dosya adından snapshot numarasını güvenle çekmek için:
-        # Örn: cloud.0100.vtk -> '0100'
         filename = os.path.basename(str(ds))
         snap_num = filename.split(".")[1]
 
@@ -53,7 +51,6 @@ def create_movie(base_path, field="density", fps=10):
                 p.set_cmap(("athena", "pressure"), "magma")
 
         # 3. Resmi doğrudan o simülasyona ait dinamik frames klasörünün içine kaydediyoruz
-        # yt plotları plt.savefig yerine p.save ile kaydedildiğinde daha kararlıdır:
         p.save(os.path.join(output_directory, f"frame_{field}_{snap_num}.png"))
 
     print(f"All snapshots are saved in {output_directory}")
@@ -82,8 +79,9 @@ def make_movie(base_path, field="density", suffix="custom", spesific_snaps=None,
                 selected_frames.append(matching_frame[0])
         frames = selected_frames
 
-    # Videoyu kodun çalıştığı ana klasöre farklı isimlerle kaydeder
-    movie_name = f"movie3_{field}_{suffix}.mp4"
+    # --- DÜZELTME: Videoyu ezmemek için doğrudan simülasyon klasörünün içine yazar ---
+    movie_name = os.path.join(base_path, f"movie3_{field}_{suffix}.mp4")
+    
     with imageio.get_writer(movie_name, format="FFMPEG", fps=fps) as writer:
         for frame in frames:
             image = imageio.imread(frame)
@@ -93,12 +91,22 @@ def make_movie(base_path, field="density", suffix="custom", spesific_snaps=None,
 
 
 # --- ÇALIŞTIRMA ALANI (EXECUTION) ---
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python movie101.py <simulation_dir_name>")
+        sys.exit(1)
 
-sim_path = '/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test'
+    # Slurm script'inden gelen klasör adını alıyoruz (Örn: sim_0, sim_1...)
+    incoming_dir = sys.argv[1]
+    
+    # Ana dizin yolunu tanımlıyoruz ve gelen klasörle birleştiriyoruz
+    base_scratch_path = "/scratch/hpc-prf-radmix/hpcbeoe"
+    sim_path = os.path.join(base_scratch_path, incoming_dir)
 
-# Önce yeni temiz klasöre resimleri çıkartıyoruz (Eğer resimler zaten varsa burayı yorum satırı yapabilirsin)
-create_movie(sim_path, field="density")
+    print(f"Simulation path: {sim_path}")
 
-# Sonra o klasördeki resimlerden videoyu basıyoruz
-make_movie(sim_path, field="density", suffix="custom")
+    # Önce resimleri oluşturuyoruz
+    create_movie(sim_path, field="density")
 
+    # Sonra videoyu basıyoruz
+    make_movie(sim_path, field="density", suffix="custom")

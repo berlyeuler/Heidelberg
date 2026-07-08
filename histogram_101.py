@@ -28,11 +28,13 @@ def hist_function(ds, field, bins=30):
     plt.title(f'{field} Histogram')
     
     # plt.show() yerine bunu yazıyoruz:
-    output_path = '/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/density_histogram_0040.png'
+    if field == "density":
+     output_path = '/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/density_histogram_0040.png'
+    elif field == "pressure":
+     output_path = '/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/pressure_histogram_0040.png'
     plt.savefig(output_path, dpi=300)
     print(f"Grafik başarıyla kaydedildi: {output_path}")
 
 hist_function(ds, "density", bins=30)
-
-hist_function(ds, "density", bins=30)
+hist_function(ds, "pressure", bins=30)
 

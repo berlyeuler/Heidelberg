@@ -1,9 +1,9 @@
 from scipy.stats import qmc
 import numpy as np
-import sys
-from shattering.basic_functions import tcool_dimless
-from matplotlib import pyplot as plt
 import os
+import sys
+from cooling_time import calculate_cooling_time
+from matplotlib import pyplot as plt
 
 
 # path to athena-ccd-... directory to get the predict_post_shock code
@@ -56,7 +56,7 @@ for i in range(nsamples):
         r = post_shock_ratios(mach_dict[key], 5/3)
         ps_density = r['density'] * ddict[key]
         ps_temperature = r['temperature'] * tdict[key]
-        tcool = tcool_dimless(ps_temperature, ps_density, 'sutherland', rescale_factor=lambda_rescale, gamma=5/3)
+        tcool = calculate_cooling_time(ps_density, ps_temperature, gamma=5/3, small_lambda=lambda_rescale)
         tcool_dict[key].append(tcool)
 
 for i in range(nsamples):
@@ -96,5 +96,5 @@ ax.set_ylabel(r'$t_{\rm cool}$')
 ax.set_yscale('log')
 ax.legend()
 
-plt.savefig(f'{os.environ['HOME']}/from_LHC.png', bbox_inches='tight', dpi=300)
+plt.savefig(f'{os.environ["HOME"]}/from_LHC.png', bbox_inches='tight', dpi=300)
 plt.show()

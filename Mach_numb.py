@@ -1,12 +1,20 @@
+
+"""
+Bu kod initial density ve temperature değerlerini bulmak için fsolve kullanır.
+Bu değerler, belirli bir Mach sayısı ve hedef post-shock yoğunluk ve sıcaklık değerleri ile uyumlu olacak şekilde hesaplanır.
+Kullanıcı, hedef post-shock yoğunluk ve sıcaklık değerlerini n_f_target ve T_f_target değişkenlerinde belirleyebilir. Kod, Rankine-Hugoniot koşullarını 
+ve Riemann problemini çözerek gerekli başlangıç değerlerini bulur.  
+
+
+"""
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import yt
 
-import glob
-import os 
-import imageio
 
 import scipy.constants as const
 

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     plt.title("Density Histogram Evolution (0000 - 0100)")
     plt.xlabel("Density (log scale)")
     plt.ylabel("Frequency")
-    plt.legend()
+    plt.show()
     
     # Grafiği kaydedeceğimiz yer
     output_plot = "/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test/id0/histogram_evolution2.png"
