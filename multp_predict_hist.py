@@ -5,7 +5,8 @@ import seaborn as sns
 import yt
 import os
 
-def predicted_histogram(ds, field, bins=30):
+
+def predicted_histogram(ds, ad, field, bins=30):
     gamma = 5 / 3 
     
     # ==============================================================================
@@ -42,45 +43,35 @@ def predicted_histogram(ds, field, bins=30):
     pred_temperature_wind = 83.80
     pred_pressure_wind = 4278.29
 
-    ad = ds.all_data()
-    
+    field_data = ad[("gas", field)]
+
     if field == "density":
         init_bg = rho_bg
         init_wind = rho_wind
         pred_bg = pred_density_bg
         pred_wind = pred_density_wind
-        field_data = ad[("athena", "density")]
-        label_bg = f"Predicted Background ({pred_bg:.2f})"
-        label_wind = f"Predicted Wind ({pred_wind:.2f})"
-        label_init_wind = f"Initial Wind ({init_wind:.2f})"
-        label_init_bg = f"Initial Background ({init_bg:.2f})"
 
     elif field == "pressure":
         init_bg = init_pressure_bg
         init_wind = init_pressure_wind
         pred_bg = pred_pressure_bg
         pred_wind = pred_pressure_wind
-        field_data = ad[("athena", "pressure")]
-        label_bg = f"Predicted Background ({pred_bg:.2f})"
-        label_wind = f"Predicted Wind ({pred_wind:.2f})"
-        label_init_wind = f"Initial Wind ({init_wind:.2f})"
-        label_init_bg = f"Initial Background ({init_bg:.2f})"
         
     elif field == "temperature":
         init_bg = init_pressure_bg / rho_bg
         init_wind = init_pressure_wind / rho_wind
         pred_bg = pred_temperature_bg
         pred_wind = pred_temperature_wind
-        field_data = ad[("athena", "pressure")] / ad[("athena", "density")]
-        label_bg = f"Predicted Background ({pred_bg:.2f})"
-        label_wind = f"Predicted Wind ({pred_wind:.2f})"
-        label_init_wind = f"Initial Wind ({init_wind:.2f})"
-        label_init_bg = f"Initial Background ({init_bg:.2f})"
     else:
         print("Choose density, pressure or temperature")
         return
-    
-    s= ad[("athena", "specific_scalar[0]")]
+   
+    label_bg = f"Predicted Background ({pred_bg:.2f})"
+    label_wind = f"Predicted Wind ({pred_wind:.2f})"
+    label_init_wind = f"Initial Wind ({init_wind:.2f})"
+    label_init_bg = f"Initial Background ({init_bg:.2f})"
+ 
+    s = ad[("athena", "specific_scalar[0]")]
 
     
     # --- HISTOGRAM GRAFİK ÇİZİMİ ---
@@ -130,10 +121,12 @@ if __name__ == "__main__":
     
     for path in path_list:
         print(f"\nVeri yükleniyor: {path}")
+
         ds = yt.load(path)
+        ad = ds.all_data()
         
         for field in fields:
             # Fonksiyona ekstra hiçbir şey yazmana gerek kalmadı!
-            predicted_histogram(ds, field)
+            predicted_histogram(ds, ad, field)
             
     print("\n[Mükemmel!] Tüm grafikler path'ten otomatik okunarak başarıyla çizildi.")
