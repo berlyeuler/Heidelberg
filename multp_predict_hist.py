@@ -12,17 +12,11 @@ def predicted_histogram(ds, ad, field, bins=30):
     # ==============================================================================
     # PATH'TEN OTOMATİK İSİM ÇEKME ALANI
     # ==============================================================================
-    # ds.parameter_filename bize tam yolu verir (örn: /scratch/.../sim_3/id0/cloud.0015.vtk)
     full_path = ds.parameter_filename
-    
-    # Dosya adını (cloud.0015.vtk) ve bulunduğu klasörleri ayırıyoruz
     path_parts = full_path.split(os.sep) 
     
-    # cloud.0015.vtk -> '0015' kısmını alır
     file_name = path_parts[-1]
     frame_num = file_name.split('.')[-2] 
-    
-    # id0'dan bir önceki klasör sim adıdır (sim_3)
     sim_name = path_parts[-3] 
     # ==============================================================================
 
@@ -34,7 +28,7 @@ def predicted_histogram(ds, ad, field, bins=30):
     init_pressure_bg = rho_bg * T_bg
     init_pressure_wind = rho_wind * T_wind
 
-    # ---  (PREDICT_POST_SHOCK.PY)dan GELEN KESİN ANALİTİK DEĞERLER ---
+    # --- (PREDICT_POST_SHOCK.PY)dan GELEN KESİN ANALİTİK DEĞERLER ---
     pred_density_bg = 61.08
     pred_pressure_bg = 4278.29
     pred_temperature_bg = 70.03
@@ -43,21 +37,21 @@ def predicted_histogram(ds, ad, field, bins=30):
     pred_temperature_wind = 83.80
     pred_pressure_wind = 4278.29
 
-    field_data = ad[("gas", field)]
+    # Veriyi numpy array formatına çeviriyoruz ki taşma yapmasın
+    field_data = np.array(ad[("gas", field)], dtype=np.float64)
 
     if field == "density":
         init_bg = rho_bg
         init_wind = rho_wind
         pred_bg = pred_density_bg
         pred_wind = pred_density_wind
-
     elif field == "pressure":
         init_bg = init_pressure_bg
         init_wind = init_pressure_wind
         pred_bg = pred_pressure_bg
         pred_wind = pred_pressure_wind
-        
     elif field == "temperature":
+        field_data = field_data / 6.97436478913788e-09  #***** önemliii temperatureyi bu değere bölmeyi unutmaaa in every codee 
         init_bg = init_pressure_bg / rho_bg
         init_wind = init_pressure_wind / rho_wind
         pred_bg = pred_temperature_bg
@@ -71,33 +65,72 @@ def predicted_histogram(ds, ad, field, bins=30):
     label_init_wind = f"Initial Wind ({init_wind:.2f})"
     label_init_bg = f"Initial Background ({init_bg:.2f})"
  
-    s = ad[("athena", "specific_scalar[0]")]
+    s = np.array(ad[("athena", "specific_scalar[0]")], dtype=np.float64)
 
+    # ==============================================================================
+    #  (DİNAMİK BİNLER)
+    # ==============================================================================
+    # Verideki gerçek min ve max değerleri alıyoruz (kırpma yapmadan)
+    actual_min = np.min(field_data)
+    actual_max = np.max(field_data)
+    
+    # Eğer min değer 0 veya negatifse logspace hata verir, o yüzden güvenli bir alt sınır koyuyoruz
+    if actual_min <= 0:
+        actual_min = 1e-3 
+
+    log_bins = np.logspace(np.log10(actual_min), np.log10(actual_max), 50)
+    # ==============================================================================
     
     # --- HISTOGRAM GRAFİK ÇİZİMİ ---
     plt.figure(figsize=(10, 6))
 
-    # Etiket artık otomatik gelen sim_name ve frame_num'ı kullanıyor
-    sns.histplot(field_data[s>0.5], bins=bins, color="pink", 
-                 label=f"wind", 
-                 element="step", fill=False, log_scale=(True, True))
     
-    sns.histplot(field_data[s<=0.5], bins=bins, color="darkgreen", 
-                 label=f"background", 
-                 element="step", fill=False, log_scale=(True, True))
 
+    #  's' skalerine göre doğrudan dilimliyoruz
+    field_data_wind = field_data[s > 0.5]
+    field_data_bg = field_data[s <= 0.5]
+
+    # 1. Rüzgar (Wind) Histogramı - Pembe
+    if len(field_data_wind) > 0:
+        weights_wind = np.ones_like(field_data_wind)/len(field_data_wind)
+        plt.hist(
+            field_data_wind,
+            bins=log_bins,
+            density=True,
+            histtype="step",
+            linewidth=2,
+            edgecolor="deeppink",
+            label="Wind",
+            color="pink")
+        
+    # 2. Arka Plan (Background) Histogramı - Koyu Yeşil
+    if len(field_data_bg) > 0:
+        plt.hist(field_data_bg, 
+                 bins=log_bins, 
+                 density=True,
+                 color="darkgreen", 
+                 edgecolor="darkgreen",
+                 label="Background", 
+                 histtype="step", 
+                 linewidth=2)
+
+    # Eksen ayarları
+    plt.xscale('log')
+    plt.yscale('log')
+
+    # Analitik Teorik Çizgiler
     plt.axvline(x=pred_bg, color="crimson", linestyle="--", linewidth=2.5, label=label_bg)
     plt.axvline(x=pred_wind, color="royalblue", linestyle="--", linewidth=2.5, label=label_wind)
     plt.axvline(x=init_wind, color="darkgreen", linestyle="-", linewidth=2.5, label=label_init_wind)
     plt.axvline(x=init_bg, color="orange", linestyle="-", linewidth=2.5, label=label_init_bg)
 
-    # Başlık otomatik güncelleniyor
+    # Başlık ve Etiketler
     plt.xlabel(f"{field.capitalize()} (log scale)")
-    plt.ylabel("Frequency (log scale)")
+    plt.ylabel("Probability Density")
     plt.title(f"{sim_name.upper()} (VTK {frame_num}) - {field.capitalize()} Histogram & Dual Rankine-Hugoniot Prediction")
-    plt.legend()
+    plt.legend(loc="upper right")
     
-    # Çıktı klasörünü de otomatik olarak verinin olduğu klasöre kaydediyoruz
+    # Otomatik Kaydetme
     output_dir = os.path.dirname(full_path)
     output_path = f"{output_dir}/{field}_{sim_name}_vtk{frame_num}_hist.png"
     
@@ -111,13 +144,13 @@ def predicted_histogram(ds, ad, field, bins=30):
 # ==============================================================================
 if __name__ == "__main__":
     
-    # Sen sadece yüklemek istediğin yolları listeye ekle, gerisini kod halleder
     path_list = [
         '/scratch/hpc-prf-radmix/hpcbeoe/sim_3/id0/cloud.0015.vtk',
-        '/scratch/hpc-prf-radmix/hpcbeoe/sim_3/id0/cloud.0036.vtk'
+        #'/scratch/hpc-prf-radmix/hpcbeoe/sim_3/id0/cloud.0036.vtk'
     ]
     
-    fields = ["density", "pressure", "temperature"]
+    fields = ["density" , "pressure", "temperature"]
+              # "density" , "pressure", "temperature"]
     
     for path in path_list:
         print(f"\nVeri yükleniyor: {path}")
@@ -126,7 +159,6 @@ if __name__ == "__main__":
         ad = ds.all_data()
         
         for field in fields:
-            # Fonksiyona ekstra hiçbir şey yazmana gerek kalmadı!
             predicted_histogram(ds, ad, field)
             
-    print("\n[Mükemmel!] Tüm grafikler path'ten otomatik okunarak başarıyla çizildi.")
+    print("\n[Mükemmel] Tüm grafikler çizildi ve kaydedildi.")
