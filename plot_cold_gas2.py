@@ -43,5 +43,5 @@ def plot_from_saved_csv():
     plt.close()
     print(f"✅ Grafik 1 saniyede başarıyla kaydedildi: {save_path}")
 
-if __name__ == "__main__":
+if __name__ == "__main__":28
     plot_from_saved_csv()

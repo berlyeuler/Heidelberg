@@ -9,7 +9,7 @@ import sys
 import imageio.v2 as imageio
 
 # --- TEK VE DİNAMİK CREATE_MOVIE FONKSİYONU ---
-def create_movie(base_path, field="density", fps=10):
+def create_movie(base_path, field, fps= 10):
     """
     Klasördeki tüm vtk dosyalarını döngüye sokarak seçilen alan için
     (density, pressure, temperature) kesit grafikleri çizer ve resimleri kaydeder.
@@ -60,7 +60,7 @@ def create_movie(base_path, field="density", fps=10):
 
 
 # --- DİNAMİK MAKE_MOVIE FONKSİYONU ---
-def make_movie(base_path, field="density", suffix="custom", spesific_snaps=None, fps=10):
+def make_movie(base_path, field, suffix="custom", spesific_snaps=None, fps=10):
     print(f"'{field}'s video is preparing using frames from {base_path}")
 
     # Resimlerin okunduğu dinamik klasör yolu
@@ -83,7 +83,7 @@ def make_movie(base_path, field="density", suffix="custom", spesific_snaps=None,
         frames = selected_frames
 
     # Videoyu kodun çalıştığı ana klasöre farklı isimlerle kaydeder
-    movie_name = f"movie3_{field}_{suffix}.mp4"
+    movie_name = os.path.join(base_path, f"movie_{field}_{suffix}.mp4")
     with imageio.get_writer(movie_name, format="FFMPEG", fps=fps) as writer:
         for frame in frames:
             image = imageio.imread(frame)
@@ -94,11 +94,10 @@ def make_movie(base_path, field="density", suffix="custom", spesific_snaps=None,
 
 # --- ÇALIŞTIRMA ALANI (EXECUTION) ---
 
-sim_path = '/scratch/hpc-prf-radmix/hpcbeoe/Mach4_test'
+sim_path = '/scratch/hpc-prf-radmix/hpcbeoe/sim_9'
 
 # Önce yeni temiz klasöre resimleri çıkartıyoruz (Eğer resimler zaten varsa burayı yorum satırı yapabilirsin)
-create_movie(sim_path, field="density")
+create_movie(sim_path, field="temperature")
 
 # Sonra o klasördeki resimlerden videoyu basıyoruz
-make_movie(sim_path, field="density", suffix="custom")
-
+make_movie(sim_path, field="temperature", suffix="custom")
