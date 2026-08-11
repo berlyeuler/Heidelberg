@@ -10,6 +10,8 @@ from matplotlib import pyplot as plt
 # layer cross-section, set by sim dimensions, y by z
 # For the 2D sims
 sigma_layer = 16 * 1
+# For the 3D sims
+sigma_layer = 16 * 16
 
 sims = pd.read_csv('2d_grid.csv')
 
