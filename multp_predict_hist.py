@@ -65,7 +65,7 @@ def predicted_histogram(ds, ad, field, bins=30):
     label_init_wind = f"Initial Wind ({init_wind:.2f})"
     label_init_bg = f"Initial Background ({init_bg:.2f})"
  
-    s = np.array(ad[("athena", "specific_scalar[0]")], dtype=np.float64)
+    density = np.array(ad[("athena", "density")], dtype=np.float64)
 
     # ==============================================================================
     #  (DİNAMİK BİNLER)
@@ -87,8 +87,8 @@ def predicted_histogram(ds, ad, field, bins=30):
     
 
     #  's' skalerine göre doğrudan dilimliyoruz
-    field_data_wind = field_data[s > 0.5]
-    field_data_bg = field_data[s <= 0.5]
+    field_data_wind = field_data[density >-1]
+    field_data_bg = field_data[density <= -1]
 
     # 1. Rüzgar (Wind) Histogramı - Pembe
     if len(field_data_wind) > 0:
@@ -145,8 +145,8 @@ def predicted_histogram(ds, ad, field, bins=30):
 if __name__ == "__main__":
     
     path_list = [
-        '/scratch/hpc-prf-radmix/hpcbeoe/sim_3/id0/cloud.0015.vtk',
-        #'/scratch/hpc-prf-radmix/hpcbeoe/sim_3/id0/cloud.0036.vtk'
+        '/scratch/hpc-prf-radmix/hpcbeoe/sim_9/id0/cloud.0050.vtk',
+        #'/scratch/hpc-prf-radmix/hpcbeoe/sim_9/id0/cloud.0094.vtk'
     ]
     
     fields = ["density" , "pressure", "temperature"]

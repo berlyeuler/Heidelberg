@@ -1,0 +1,5 @@
+[2026-07-13T15:11:15.195] error: namespace_p_join: open failed for /scratch/jobtmps/n2cn0388/33613483/.ns: No such file or directory
+[2026-07-13T15:11:15.195] error: namespace_g_join(JobId=33613483 SLUID=s0KDKXDSDGGX00) failed
+cpu-bind=MASK - n2cn0388, task  0  0 [1237757]: mask 0x|BBBBBBBB|BBBBBBBB||BBBBBBBB|BBBBBBBB||BBBBBBBB|BBBBBBBB||BBBBBBBB|BBBBBBBB||||BBBBBBBB|BBBBBBBB||BBBBBBBB|BBBBBBBB||BBBBBBBB|BBBBBBBB||BBBBBBBB|BBBBBBBB| set
+[2026-07-13T15:11:15.199] error: _exec_wait_signal_child: write(fd:20) to unblock task 0 failed
+[2026-07-13T15:11:15.201] error: *** JOB 33613483 ON n2cn0388 CANCELLED AT 2026-07-13T15:11:15 DUE TO JOB REQUEUE ***

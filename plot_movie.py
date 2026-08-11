@@ -9,7 +9,7 @@ import os
 import imageio
 
 
-base_path = "/scratch/hpc-prf-radmix/hpcbeoe/sim_3"
+base_path = "/scratch/hpc-prf-radmix/hpcbeoe/sim_9"
 times = []
 cold_gas_mass = []
 
@@ -48,7 +48,7 @@ def create_plot():
         cold_cells_filter = real_temperature < 2.0
         cold_mass_value = snap_data["gas", "mass"][cold_cells_filter].sum()  # Soğuk hücrelerin kütlelerini topluyoruz
         cold_gas_mass.append(float(cold_mass_value))
-        numb_of_coldcells= int(cold_cells_filter.sum())
+        # numb_of_coldcells= int(cold_cells_filter.sum())
         # cold_gas_mass.append(numb_of_coldcells) #boş sepetimize bulduğumuz sonucu ekleyelim
         print(f"TİME: {sim_time:.2f} - COLD GAS MASS: {cold_mass_value:.2e}")
     
