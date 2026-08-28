@@ -282,6 +282,7 @@ frames = sorted(glob(f"{output_frames_dir}/*{var}*.png"))
 
 if frames:
     movie_name = f"sim_15_try2_tracked_vs_predicted_{var}_cut.mp4"
+    #b
     W, H = 1040, 496
 
     with imageio.get_writer(movie_name, format="FFMPEG", fps=8) as writer:
