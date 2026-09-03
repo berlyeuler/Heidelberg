@@ -35,6 +35,9 @@ vshock_bg_lab, vshock_wind_lab, v_shocked_bg = calc_shock_speed(
     rho_bg, T_bg, rho_wind, T_wind, M_wind
 )
 
+
+
+
 # Simülasyon Veri Seti
 sim_dir = "/scratch/hpc-prf-radmix/hpcbeoe/sim_15_try2"
 snaps = sorted(glob(f"{sim_dir}/id0/*.vtk")) + sorted(
@@ -54,9 +57,6 @@ T_min = 6.97436478913788e-09
 def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     time = float(ds.current_time)
     
-    print(f"\n{'='*60}")
-    print(f"🔍 FRAME {counter} | TIME = {time:.3f} s")
-    print(f"{'='*60}")
     
     slc = yt.SlicePlot(ds, "z", ("gas", variable))
 
@@ -68,68 +68,83 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     density_arr = slc_data["gas", "density"].v 
 
     center_mask = np.abs(y_arr) < 0.1
-    x_c = x_arr[center_mask]
-    temp_c = temp_norm[center_mask]
-    density_c = density_arr[center_mask]
 
-    sort_idx = np.argsort(x_c)
-    x_sorted = x_c[sort_idx]
-    temp_sorted = temp_c[sort_idx]
-    density_sorted = density_c[sort_idx]
+    x_line = x_arr[center_mask]
+    temp_line = temp_norm[center_mask]
+    density_line = density_arr[center_mask]
 
-    temp_threshold = temp_sorted > T_TRESH
-    dens_threshold = density_sorted > D_TRESH
+    if not np.all(np.diff(x_line)>= 0):
+         print("⚠️ x_line is not sorted! ")
 
-    print(f"📊 temp_threshold sum: {np.sum(temp_threshold)} nokta")
-    print(f"📊 dens_threshold sum: {np.sum(dens_threshold)} nokta")
+    temp_threshold = temp_line > T_TRESH
+    dens_threshold = density_line > D_TRESH
 
     # --- ŞOK CEPHESİNİ BUL ---
     if np.any(temp_threshold):
         temp_indices = np.where(temp_threshold)[0]
-        last_temp_pos = x_sorted[temp_indices[-1]]
+
+        left_temp_idx= temp_indices[0]
+        right_temp_idx = temp_indices[-1]
+        right_last_temp_pos = x_line[right_temp_idx]
+        left_last_temp_pos = x_line[left_temp_idx]
+
+        print(f"📊 Most right hot point: x={right_last_temp_pos:.4f}, T={temp_line[right_temp_idx]:.3f}")
+        print(f"📊 Most left hot point: x={left_last_temp_pos:.4f}, T={temp_line[left_temp_idx]:.3f}")
+        print(f"   Seperation : {right_last_temp_pos - left_last_temp_pos:.4f}")
         
-        print(f"📊 En sağdaki sıcak nokta: x={last_temp_pos:.3f}, T={temp_sorted[temp_indices[-1]]:.3f}")
-        
-        if temp_indices[-1] < len(x_sorted) - 1:
-            next_idx = temp_indices[-1] + 1
-            next_temp = temp_sorted[next_idx]
-            next_x = x_sorted[next_idx]
-            print(f"📊 Sonraki nokta: x={next_x:.3f}, T={next_temp:.3f}")
-            print(f"📊 Sıcaklık sıçraması: {temp_sorted[temp_indices[-1]] - next_temp:.3f}")
+        if right_temp_idx < len(x_line) - 1:
+            next_idx = right_temp_idx + 1
+            next_temp = temp_line[next_idx]
+            next_x = x_line[next_idx]
+            print(f"📊 next point: x={next_x:.4f}, T={next_temp:.3f}")
+            print(f"📊 Temperature jump: {temp_line[right_temp_idx] - next_temp:.3f}")
     else:
-        last_temp_pos = np.nan
         print("❌ Hiç sıcak nokta yok!")
+        right_last_temp_pos = 0.0  
+        left_last_temp_pos = 0.0
 
     if np.any(dens_threshold):
         dens_indices = np.where(dens_threshold)[0]
-        last_dens_pos = x_sorted[dens_indices[-1]]
-        print(f"📊 En sağdaki yoğun nokta: x={last_dens_pos:.3f}")
+
+        left_dens_idx = dens_indices[0]
+        right_dens_idx = dens_indices[-1]
+        right_last_dens_pos = x_line[right_dens_idx]
+        left_last_dens_pos = x_line[left_dens_idx]
+        print(f"📊 most right denser point: x={right_last_dens_pos:.4f}")
+        print(f"📊 most left denser point: x={left_last_dens_pos:.4f}")
+        print(f"   Seperation : {right_last_dens_pos - left_last_dens_pos:.4f}")
     else:
-        last_dens_pos = np.nan
+        
         print("❌ Hiç yoğun nokta yok!")
+        right_last_dens_pos = 0.0
+        left_last_dens_pos = 0.0
+
+        #ayrışma mesafelerini hesapla
+        #sağ kenar icin 
+        
+    right_seperation = abs(right_last_temp_pos - right_last_dens_pos)
+    print(f" Right edge seperation is {right_seperation:.4f} (Threshold is {SEPERATION_THRESHOLD:.4f})")
+
+        #sol kenar icin 
+        
+    left_seperation = abs(left_last_temp_pos - left_last_dens_pos)
+    print(f" Left edge seperation is {left_seperation:.4f} ")
+
+    separation = right_seperation 
+    shock_active = separation <= SEPERATION_THRESHOLD
+
 
     # --- ŞOK DURUMUNU BELİRLE ---
-    x_tracked = np.nan
-    shock_status = "Undefined"
-    shock_active = False  # BAŞLANGIÇTA FALSE OLSUN
-
-    if not np.isnan(last_temp_pos) and not np.isnan(last_dens_pos):
-        separation = abs(last_temp_pos - last_dens_pos)
-        print(f"📊 Ayrışma mesafesi: {separation:.4f} (Eşik: {SEPERATION_THRESHOLD:.4f})")
+    
         
-        if separation <= SEPERATION_THRESHOLD:
-            x_tracked = (last_temp_pos + last_dens_pos) / 2
-            shock_status = "Active"
-            shock_active = True
-            print(f"✅ ŞOK AKTİF!")
-        else:
-            shock_status = "Dissipated"
-            shock_active = False
-            print(f"❌ ŞOK DAĞILMIŞ! (Ayrışma eşikten büyük)")
-    else:
-        print("❌ Yetersiz veri!")
+    if shock_active:
+            x_tracked = (right_last_temp_pos + right_last_dens_pos) / 2
+            print(f"✅ SHOCK ACTİVE! x_tracked = {x_tracked:.4f}")
 
-    print(f"{'='*60}\n")
+    else:
+        x_tracked = right_last_dens_pos
+        print(f"❌ SHOCK İS SCATTERED! (SEPARATİON BİGGER THAN THRESHOLD)")
+        print(f"{'='*60}\n")
     
     # --- ÇİZGİLERİ ÇİZ ---
     x_predicted = vshock_bg_lab * time
@@ -143,7 +158,7 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     )
 
     # Takip edilen şok (KIRMIZI) - SADECE AKTİFSE
-    if shock_active and not np.isnan(x_tracked):
+    if shock_active:
         slc.annotate_line(
             (x_tracked, 8.0, 0.0),
             (x_tracked, -8.0, 0.0),
@@ -153,7 +168,7 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
         )
         print(f"🔴 KIRMIZI ÇİZGİ ÇİZİLDİ: x={x_tracked:.3f}")
     else:
-        print(f"⚪ KIRMIZI ÇİZGİ ÇİZİLMEDİ (şok aktif değil)")
+        print(f"⚪ KIRMIZI ÇİZGİ ÇİZİLMEDİ (shock inactive)")
 
     # Başlangıç Sınırı (BEYAZ)
     slc.annotate_line(
@@ -165,8 +180,7 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     # --- LEJANT ---
     if shock_active:
         track_label = f"Shock Front ({x_tracked:.2f})"
-    elif shock_status == "Dissipated":
-        track_label = "Shock Dissipated"
+
     else:
         track_label = "Shock Undefined"
 
@@ -189,15 +203,11 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     frame_name = os.path.join(output_frames_dir, f"frame_{variable}_{counter:04d}.png")
     p.figure.savefig(frame_name, bbox_inches="tight")
     
-    # --- DOĞRU LOG MESAJI (counter sıfırlanmadan) ---
-    if shock_active:
-        shock_str = f"{x_tracked:.2f}"
-    else:
-        shock_str = "N/A"
-    
+    # ---  LOG MESAJI (counter sıfırlanmadan) ---
+   
+    shock_str = f"{x_tracked:.2f}" if shock_active else "DISSIPATED"
     print(f"Frame {counter:02d} | Time: {time:.3f} | "
-          f"Shock: {shock_str} | Pred: {x_predicted:.2f} | "
-          f"Status: {shock_status} | KIRMIZI ÇİZGİ: {'EVET' if shock_active else 'HAYIR'}")
+          f"Shock: {shock_str} | Pred: {x_predicted:.2f} |" f" Active: {'YES' if shock_active else 'NO'}")
 
 
 # --- ANA DÖNGÜ (counter burada doğru yönetiliyor) ---
