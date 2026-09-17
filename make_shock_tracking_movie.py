@@ -27,7 +27,14 @@ vshock_bg_lab, vshock_wind_lab, v_shocked_bg = calc_shock_speed(
     rho_bg, T_bg, rho_wind, T_wind, M_wind
 )
 
+<<<<<<< HEAD
 # --- SİMÜLASYON VERİLERİ ---
+=======
+
+
+
+# Simülasyon Veri Seti
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
 sim_dir = "/scratch/hpc-prf-radmix/hpcbeoe/sim_15_try2"
 snaps = sorted(glob(f"{sim_dir}/id0/*.vtk")) + sorted(glob(f"{sim_dir}/*.vtk"))
 if not snaps:
@@ -42,6 +49,10 @@ T_min = 6.97436478913788e-09
 def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     time = float(ds.current_time)
     
+<<<<<<< HEAD
+=======
+    
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
     slc = yt.SlicePlot(ds, "z", ("gas", variable))
     slc_data = ds.slice("z", 0.0)
     
@@ -52,6 +63,7 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
 
     # y=0 civarından tek bir satır al
     center_mask = np.abs(y_arr) < 0.1
+<<<<<<< HEAD
     x_line = x_arr[center_mask]
     temp_line = temp_norm[center_mask]
     density_line = density_arr[center_mask]
@@ -92,8 +104,85 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
         # Eksik veri varsa bu frame'i atla
         print(f"  ⚠️ SKIPPING frame {counter}: missing data")
         return time, np.nan, np.nan, vshock_bg_lab * time, False
+=======
 
-    print(f"{'='*60}\n")
+    x_line = x_arr[center_mask]
+    temp_line = temp_norm[center_mask]
+    density_line = density_arr[center_mask]
+
+    if not np.all(np.diff(x_line)>= 0):
+         print("⚠️ x_line is not sorted! ")
+
+    temp_threshold = temp_line > T_TRESH
+    dens_threshold = density_line > D_TRESH
+
+    # --- ŞOK CEPHESİNİ BUL ---
+    if np.any(temp_threshold):
+        temp_indices = np.where(temp_threshold)[0]
+
+        left_temp_idx= temp_indices[0]
+        right_temp_idx = temp_indices[-1]
+        right_last_temp_pos = x_line[right_temp_idx]
+        left_last_temp_pos = x_line[left_temp_idx]
+
+        print(f"📊 Most right hot point: x={right_last_temp_pos:.4f}, T={temp_line[right_temp_idx]:.3f}")
+        print(f"📊 Most left hot point: x={left_last_temp_pos:.4f}, T={temp_line[left_temp_idx]:.3f}")
+        print(f"   Seperation : {right_last_temp_pos - left_last_temp_pos:.4f}")
+        
+        if right_temp_idx < len(x_line) - 1:
+            next_idx = right_temp_idx + 1
+            next_temp = temp_line[next_idx]
+            next_x = x_line[next_idx]
+            print(f"📊 next point: x={next_x:.4f}, T={next_temp:.3f}")
+            print(f"📊 Temperature jump: {temp_line[right_temp_idx] - next_temp:.3f}")
+    else:
+        print("❌ Hiç sıcak nokta yok!")
+        right_last_temp_pos = 0.0  
+        left_last_temp_pos = 0.0
+
+    if np.any(dens_threshold):
+        dens_indices = np.where(dens_threshold)[0]
+
+        left_dens_idx = dens_indices[0]
+        right_dens_idx = dens_indices[-1]
+        right_last_dens_pos = x_line[right_dens_idx]
+        left_last_dens_pos = x_line[left_dens_idx]
+        print(f"📊 most right denser point: x={right_last_dens_pos:.4f}")
+        print(f"📊 most left denser point: x={left_last_dens_pos:.4f}")
+        print(f"   Seperation : {right_last_dens_pos - left_last_dens_pos:.4f}")
+    else:
+        
+        print("❌ Hiç yoğun nokta yok!")
+        right_last_dens_pos = 0.0
+        left_last_dens_pos = 0.0
+
+        #ayrışma mesafelerini hesapla
+        #sağ kenar icin 
+        
+    right_seperation = abs(right_last_temp_pos - right_last_dens_pos)
+    print(f" Right edge seperation is {right_seperation:.4f} (Threshold is {SEPERATION_THRESHOLD:.4f})")
+
+        #sol kenar icin 
+        
+    left_seperation = abs(left_last_temp_pos - left_last_dens_pos)
+    print(f" Left edge seperation is {left_seperation:.4f} ")
+
+    separation = right_seperation 
+    shock_active = separation <= SEPERATION_THRESHOLD
+
+
+    # --- ŞOK DURUMUNU BELİRLE ---
+    
+        
+    if shock_active:
+            x_tracked = (right_last_temp_pos + right_last_dens_pos) / 2
+            print(f"✅ SHOCK ACTİVE! x_tracked = {x_tracked:.4f}")
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
+
+    else:
+        x_tracked = right_last_dens_pos
+        print(f"❌ SHOCK İS SCATTERED! (SEPARATİON BİGGER THAN THRESHOLD)")
+        print(f"{'='*60}\n")
     
     # --- ÇİZGİLERİ ÇİZ ---
     x_predicted = vshock_bg_lab * time
@@ -111,7 +200,13 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
             coord_system="data", color="red",
             plot_args={"linestyle": "--", "linewidth": 2.5}
         )
+<<<<<<< HEAD
         print(f"  🔴 Red line drawn at x={x_tracked:.3f}")
+=======
+        print(f"🔴 KIRMIZI ÇİZGİ ÇİZİLDİ: x={x_tracked:.3f}")
+    else:
+        print(f"⚪ KIRMIZI ÇİZGİ ÇİZİLMEDİ (shock inactive)")
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
 
     # Başlangıç sınırı (BEYAZ)
     slc.annotate_line(
@@ -122,7 +217,16 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
     slc.render()
 
     # --- LEJANT ---
+<<<<<<< HEAD
     track_label = f"Shock Front ({x_tracked:.2f})" if shock_active else "Shock Dissipated"
+=======
+    if shock_active:
+        track_label = f"Shock Front ({x_tracked:.2f})"
+
+    else:
+        track_label = "Shock Undefined"
+
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
     legend_lines = [
         Line2D([0], [0], color="cyan", linewidth=2, label=f"Predicted ({x_predicted:.2f})"),
         Line2D([0], [0], color="red" if shock_active else "gray", linewidth=2, 
@@ -140,6 +244,7 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
 
     p = slc.plots[("gas", variable)]
     frame_name = os.path.join(output_frames_dir, f"frame_{variable}_{counter:04d}.png")
+<<<<<<< HEAD
     p.figure.savefig(frame_name, bbox_inches="tight", dpi=100)
     p.figure.set_size_inches(10, 5)  # Sabit boyut
     
@@ -149,6 +254,15 @@ def make_comparison_frame(ds, variable, vshock_bg_lab, counter):
           f"Shock: {shock_str} | Pred: {x_predicted:.2f} | Active: {'YES' if shock_active else 'NO'}")
     
     return time, separation, x_tracked, x_predicted, shock_active
+=======
+    p.figure.savefig(frame_name, bbox_inches="tight")
+    
+    # ---  LOG MESAJI (counter sıfırlanmadan) ---
+   
+    shock_str = f"{x_tracked:.2f}" if shock_active else "DISSIPATED"
+    print(f"Frame {counter:02d} | Time: {time:.3f} | "
+          f"Shock: {shock_str} | Pred: {x_predicted:.2f} |" f" Active: {'YES' if shock_active else 'NO'}")
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
 
 
 # --- ANA DÖNGÜ ---
@@ -224,5 +338,9 @@ if frames:
                 img = np.array(img_pil)
             writer.append_data(img)
 
+<<<<<<< HEAD
     print(f"\n✅ TAMAM! Video: {movie_name}")
     print(f"📊 Grafikler: separation_vs_time.png ve shock_position_vs_time.png")
+=======
+    print(f"\n🎬 İŞLEM TAMAM! Video: {movie_name}")
+>>>>>>> c176d3127dedfef16dd523a3d24197df59c7202b
